@@ -1,0 +1,63 @@
+{
+  "group": {
+    "name": "Autumn Byte Guild",
+    "concept": "Three minds building thoughtful AI, one quest at a time.",
+    "highlights": [
+      "Full-stack AI apps",
+      "Design that feels like a game"
+    ],
+    "shared_projects": [
+      {
+        "title": "Chat AI with group portfolio",
+        "description": "A website where visitors chat with an AI that knows our team.",
+        "tech": [
+          "React",
+          "Express",
+          "PostgreSQL",
+          "Gemini AI"
+        ]
+      }
+    ],
+    "contact": {
+      "email": "to be added",
+      "github": "to be added"
+    }
+  },
+  "members": [
+    {
+      "name": "Punnawit (Beam) Surarak",
+      "role": "Backend, AI integration, database, CI/CD",
+      "bio": "Third-year AI Engineering and Data Science student at Bangkok University.",
+      "skills": [
+        "Python",
+        "Machine Learning",
+        "Computer Vision",
+        "Full-stack development"
+      ],
+      "projects": [
+        {
+          "title": "BU ParkView",
+          "description": "AI smart parking system; won the Popular Vote Award at BDI Hackathon 2026."
+        },
+        {
+          "title": "HIWWHEE - ตลอดกาลไม่มีจริง [Official MV]",
+          "description": "Featured in the cast (credited under Starring) of HIWWHEE's official music video."
+        }
+      ]
+    },
+    {
+      "name": "Name to be added",
+      "role": "Portfolio page (frontend)",
+      "bio": "Details to be added.",
+      "skills": [],
+      "projects": []
+    },
+    {
+      "name": "Name to be added",
+      "role": "Chat UI and presentation",
+      "bio": "Details to be added.",
+      "skills": [],
+      "projects": []
+    }
+  ]
+}

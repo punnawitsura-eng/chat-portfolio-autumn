@@ -1,0 +1,41 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install and test server
+        working-directory: server
+        run: |
+          npm ci
+          npm test
+
+      - name: Install and build client (if present)
+        run: |
+          if [ -f client/package.json ]; then
+            cd client && npm ci && npm run build
+          else
+            echo "No client yet, skipping"
+          fi
+
+  deploy:
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      # Add these repo secrets: RENDER_BACKEND_HOOK, RENDER_FRONTEND_HOOK
+      - name: Deploy backend
+        run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_HOOK }}"
+      - name: Deploy frontend
+        run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_HOOK }}"

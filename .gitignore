@@ -1,0 +1,6 @@
+node_modules/
+.env
+dist/
+
+# course starter, for reference only - never commit
+reference/

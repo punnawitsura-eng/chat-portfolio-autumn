@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 820" shape-rendering="crispEdges">
+  <rect width="1440" height="820" fill="#8E9AB8"/>
+  <rect y="0" width="1440" height="280" fill="#5B4A7A"/>
+  <rect x="0" y="156" width="1440" height="124" fill="#8E9AB8"/>
+  <rect x="100" y="96" width="16" height="16" fill="#FFF0B8"/>
+  <rect x="268" y="64" width="12" height="12" fill="#FFC447"/>
+  <rect x="1092" y="76" width="16" height="16" fill="#FFF0B8"/>
+  <rect x="1250" y="126" width="10" height="10" fill="#FFC447"/>
+  <rect x="0" y="270" width="1440" height="16" fill="#2A2D4A"/>
+  <path fill="#2A2D4A" d="M0 252h142v-28h74v28h126v-50h112v50h150v-32h82v32h164v-66h132v66h122v-38h78v38h202v568H0z"/>
+  <path fill="#5B4A7A" d="M0 340h128v-44h88v44h108v-24h120v24h156v-58h124v58h104v-36h94v36h124v-68h110v68h204v480H0z"/>
+  <path fill="#B5381A" d="M0 410h170v-44h90v44h150v-72h146v72h140v-38h120v38h146v-88h144v88h334v410H0z"/>
+  <path fill="#FF8A1F" d="M0 480h148v-58h124v58h126v-88h172v88h126v-50h152v50h128v-96h170v96h294v340H0z"/>
+  <path fill="#FFC447" d="M0 542h170v-52h106v52h134v-80h170v80h128v-44h138v44h154v-84h134v84h306v278H0z"/>
+  <rect y="624" width="1440" height="196" fill="#7A5D35"/>
+  <path fill="#B5381A" d="M0 604h92v20h88v-34h74v34h134v-24h104v24h132v-38h90v38h142v-30h78v30h122v-40h102v40h202v42H0z"/>
+  <path fill="#2A2D4A" d="M954 338h40v286h-40zM902 352h144v42H902zM926 310h96v44h-96z"/>
+  <path fill="#FFF0B8" d="M968 348h14v14h-14z"/>
+  <path fill="#2A2D4A" d="M1134 412h42v212h-42zM1062 438h182v36h-182z"/>
+  <rect x="1150" y="432" width="12" height="12" fill="#FFF0B8"/>
+  <path fill="#2A2D4A" d="M96 464h40v160H96zM36 476h168v38H36z"/>
+  <path fill="#FFF0B8" d="M110 480h12v12h-12z"/>
+  <path fill="#2A2D4A" d="M0 680h1440v140H0z"/>
+  <path fill="#5B4A7A" d="M0 714h180v20h136v-20h202v22h170v-22h174v20h198v-20h180v22h200v84H0z"/>
+  <path fill="#8E9AB8" d="M0 754h232v18h134v-18h260v18h164v-18h230v18h154v-18h266v66H0z"/>
+  <path fill="#FFC447" d="M1268 558h18v18h-18zM1320 592h12v12h-12zM1190 528h10v10h-10zM250 560h14v14h-14zM316 602h12v12h-12z"/>
+  <path fill="#FFF0B8" d="M1044 646h32v14h-32zM1082 654h18v10h-18zM1110 642h26v14h-26z"/>
+  <path fill="#B5381A" d="M1036 660h110v12h-110z"/>
+</svg>
