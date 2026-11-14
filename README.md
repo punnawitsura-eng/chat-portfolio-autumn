@@ -335,6 +335,6 @@ Do the steps in this order. Both services can use the free plans.
 |---|---|
 | Punnawit (Beam) Surarak | Backend, AI integration, database, CI/CD |
 | _Name to be added_ | Portfolio page (frontend) |
-| _Name to be added_ | Chat UI and presentation |
+| Pitchayuth Pitchayakasorn | Chat UI and content |
 
 University final project: Chat AI with Group Portfolio.

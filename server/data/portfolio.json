@@ -53,11 +53,19 @@
       "projects": []
     },
     {
-      "name": "Name to be added",
-      "role": "Chat UI and presentation",
-      "bio": "Details to be added.",
-      "skills": [],
-      "projects": []
+      "name": "Pitchayuth Pitchayakasorn",
+      "role": "Chat UI and content",
+      "bio": "Pitchayuth is responsible for developing the Chat UI and structuring the team content.",
+      "skills": [
+        "Python",
+        "JavaScript"
+      ],
+      "projects": [
+        {
+          "title": "Idol",
+          "description": "performs dance and singing at events"
+        }
+      ]
     }
   ]
 }

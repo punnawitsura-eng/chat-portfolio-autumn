@@ -747,8 +747,34 @@
   border: 3px solid var(--accent);
 }
 
+/* Member photo: fills the square inside the cream frame.
+   The source photo is landscape, so it is cropped to a square around the face:
+   object-position picks the face column, scale() zooms to head and shoulders. */
+.avatar-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #2a2d4a;
+}
+.avatar-photo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: 20% 50%;
+  transform: scale(1.8);
+  transform-origin: 50% 27%;
+  image-rendering: auto; /* keep the photo smooth, not pixelated */
+}
+/* keep the inner accent border and the sparks on top of the photo */
+.avatar::before {
+  z-index: 1;
+}
+
 .avatar-spark {
   position: absolute;
+  z-index: 2;
   width: 9px;
   height: 9px;
   background: #fff0b8;

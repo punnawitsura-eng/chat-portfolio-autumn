@@ -1,6 +1,18 @@
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 
-const members = [
+type Member = {
+  number: string;
+  initials: string; // shown in the pixel frame when there is no photo (or it fails to load)
+  accent: string;
+  name: string;
+  role: string;
+  description: string;
+  skills: string[];
+  projects: Array<{ title: string; description: string }>;
+  photo?: string; // optional, a file in client/public/members/
+};
+
+const members: Member[] = [
   {
     number: "01",
     initials: "PB",
@@ -20,7 +32,7 @@ const members = [
       },
     ],
   },
-  // Members 2 and 3: placeholders until we have their real data.
+  // Member 2: placeholder until we have real data.
   // Keep this list in sync with server/data/portfolio.json (the AI reads that file).
   {
     number: "02",
@@ -34,15 +46,29 @@ const members = [
   },
   {
     number: "03",
-    initials: "03",
+    initials: "PP",
     accent: "purple",
-    name: "Name to be added",
-    role: "Chat UI and presentation",
-    description: "Details to be added.",
-    skills: [] as string[],
-    projects: [] as Array<{ title: string; description: string }>,
+    name: "Pitchayuth Pitchayakasorn",
+    role: "Chat UI and content",
+    description:
+      "Pitchayuth is responsible for developing the Chat UI and structuring the team content.",
+    skills: ["Python", "JavaScript"],
+    projects: [{ title: "Idol", description: "performs dance and singing at events" }],
+    photo: "/members/pitchayuth.jpg",
   },
 ];
+
+// Member photo inside the pixel frame. If the image cannot load,
+// fall back to the initials so the card never shows a broken image.
+function AvatarPhoto({ src, initials }: { src: string; initials: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <strong>{initials}</strong>;
+  return (
+    <span className="avatar-photo">
+      <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} />
+    </span>
+  );
+}
 
 const highlights = [
   ["03", "Builders"],
@@ -801,9 +827,14 @@ export default function App() {
                 <article className={`member-card ${member.accent}`} key={member.number}>
                   <div className="member-top">
                     <div className="avatar" aria-hidden="true">
+                      {member.photo ? (
+                        <AvatarPhoto src={member.photo} initials={member.initials} />
+                      ) : (
+                        <strong>{member.initials}</strong>
+                      )}
                       <span className="avatar-spark s-one" />
                       <span className="avatar-spark s-two" />
-                      <strong>{member.initials}</strong>
+                      {/* sparks come after the photo so they are drawn on top of it */}
                     </div>
                     <span className="member-number">Player {member.number}</span>
                   </div>
