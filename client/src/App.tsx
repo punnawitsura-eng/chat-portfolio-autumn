@@ -384,7 +384,8 @@ function formatTime(iso: string) {
   return `${date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}, ${time}`;
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? "";
+// backend URL (empty in dev: Vite proxies /api). Trailing "/" removed so we never build "//api".
+const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 const STORAGE_KEY = "chat-conversation";
 const CHAT_ERROR = "The guild could not answer. Please try again in a moment.";
 const SUGGESTIONS = [
