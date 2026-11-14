@@ -1,3 +1,6 @@
+# CI/CD for the chat portfolio.
+# CI: on every push and pull request to main, install, test and build both apps.
+# CD: only after CI passes on a push to main, ask Render to redeploy (deploy hooks).
 name: CI/CD
 
 on:
@@ -11,31 +14,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Node 22: Vite 8 needs Node 20.19+ or 22.12+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Install and test server
+      # Tests use a mocked AI call and no database, so no secrets are needed here
+      - name: Server - install and test
         working-directory: server
         run: |
           npm ci
           npm test
 
-      - name: Install and build client (if present)
+      - name: Client - install, typecheck and build
+        working-directory: client
         run: |
-          if [ -f client/package.json ]; then
-            cd client && npm ci && npm run build
-          else
-            echo "No client yet, skipping"
-          fi
+          npm ci
+          npm run typecheck
+          npm run build
 
   deploy:
     needs: test-and-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      # Add these repo secrets: RENDER_BACKEND_HOOK, RENDER_FRONTEND_HOOK
-      - name: Deploy backend
-        run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_HOOK }}"
-      - name: Deploy frontend
-        run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_HOOK }}"
+      # Hook URLs are GitHub repo secrets (Settings > Secrets and variables > Actions).
+      # If a secret is not set yet, skip that deploy instead of failing the run.
+      - name: Deploy backend (Render)
+        env:
+          HOOK: ${{ secrets.RENDER_BACKEND_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then echo "RENDER_BACKEND_HOOK not set - skipping"; exit 0; fi
+          curl -fsS -X POST "$HOOK" > /dev/null && echo "Backend deploy triggered"
+
+      - name: Deploy frontend (Render)
+        env:
+          HOOK: ${{ secrets.RENDER_FRONTEND_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then echo "RENDER_FRONTEND_HOOK not set - skipping"; exit 0; fi
+          curl -fsS -X POST "$HOOK" > /dev/null && echo "Frontend deploy triggered"
