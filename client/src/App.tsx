@@ -1,4 +1,13 @@
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import {
+  AchievementsModal,
+  GameProvider,
+  prefersReducedMotion,
+  SecretBurst,
+  Toasts,
+  useGame,
+  XpHud,
+} from "./game";
 
 type Member = {
   number: string;
@@ -10,12 +19,14 @@ type Member = {
   skills: string[];
   projects: Array<{ title: string; description: string }>;
   photo?: string; // optional, a file in client/public/members/
+  // where the face is in the photo (CSS percentages) so the square crop centres it
+  photoFocus?: { x: string; y: string };
 };
 
 const members: Member[] = [
   {
     number: "01",
-    initials: "PB",
+    initials: "PS",
     accent: "orange",
     name: "Punnawit (Beam) Surarak",
     role: "Backend, AI integration, database, CI/CD",
@@ -31,21 +42,12 @@ const members: Member[] = [
         description: "Cast",
       },
     ],
+    photo: "/members/punnawit.jpg",
+    photoFocus: { x: "42%", y: "35%" },
   },
-  // Member 2: placeholder until we have real data.
   // Keep this list in sync with server/data/portfolio.json (the AI reads that file).
   {
     number: "02",
-    initials: "02",
-    accent: "amber",
-    name: "Name to be added",
-    role: "Portfolio page (frontend)",
-    description: "Details to be added.",
-    skills: [] as string[],
-    projects: [] as Array<{ title: string; description: string }>,
-  },
-  {
-    number: "03",
     initials: "PP",
     accent: "purple",
     name: "Pitchayuth Pitchayakasorn",
@@ -60,18 +62,32 @@ const members: Member[] = [
 
 // Member photo inside the pixel frame. If the image cannot load,
 // fall back to the initials so the card never shows a broken image.
-function AvatarPhoto({ src, initials }: { src: string; initials: string }) {
+function AvatarPhoto({
+  src,
+  initials,
+  focus,
+}: {
+  src: string;
+  initials: string;
+  focus?: { x: string; y: string };
+}) {
   const [failed, setFailed] = useState(false);
   if (failed) return <strong>{initials}</strong>;
+  // CSS defaults (20% / 27%) are used when no focus point is given
+  const style = focus ? ({ "--photo-x": focus.x, "--photo-y": focus.y } as CSSProperties) : {};
   return (
-    <span className="avatar-photo">
+    <span className="avatar-photo" style={style}>
       <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} />
     </span>
   );
 }
 
+// Fun RPG "skill level" for the stat bars: first listed skill Lv.5, then 4, 3...
+// (never below 2). Just for fun - not a real rating.
+const skillLevel = (index: number) => Math.max(5 - index, 2);
+
 const highlights = [
-  ["03", "Builders"],
+  ["02", "Builders"],
   ["01", "Shared quest"],
   ["∞", "Ideas to explore"],
 ];
@@ -208,31 +224,77 @@ function PixelForest({ variant = "standard" }: { variant?: "hero" | "standard" |
   );
 }
 
-const fallingLeaves = Array.from({ length: 32 }, (_, index) => ({
+// Quiet background leaves: 11 per section (a third of the old 32 on screen),
+// small (10-16px), slow (24-34s per fall) and see-through (30-50% opacity).
+const fallingLeaves = Array.from({ length: 11 }, (_, index) => ({
   id: index,
   x: (index * 37 + 11) % 100,
-  delay: -((index * 1.73) % 18),
-  duration: 12 + ((index * 7) % 9),
+  delay: -((index * 2.9) % 30),
+  duration: 24 + ((index * 7) % 11),
   color: ["#FF8A1F", "#FFC447", "#B5381A", "#FFF0B8"][index % 4],
-  size: 6 + (index % 3) * 2,
+  size: 10 + (index % 3) * 3,
+  opacity: 0.3 + (index % 3) * 0.1,
+  rest: 15 + ((index * 23) % 70), // height where the leaf rests when motion is reduced
 }));
 
-function FallingLeaves() {
+// One leaves layer per section, drawn behind that section's content.
+// "offset" shifts the timing so the sections do not look identical.
+// Clicking a leaf collects it (+3 XP): it sparkles, then hides until its next fall.
+function FallingLeaves({ offset = 0 }: { offset?: number }) {
+  const { collectLeaf } = useGame();
+  const [collected, setCollected] = useState<number[]>([]);
+  const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number }>>([]);
+
+  const collect = (id: number, event: React.MouseEvent<HTMLElement>) => {
+    if (collected.includes(id)) return;
+    setCollected((list) => [...list, id]);
+    collectLeaf();
+    // with reduced motion the leaves don't fall, so bring this one back after 20s
+    if (prefersReducedMotion()) {
+      window.setTimeout(() => setCollected((list) => list.filter((x) => x !== id)), 20000);
+    }
+    // sparkle where the visitor clicked, relative to this layer
+    const layer = event.currentTarget.parentElement!.getBoundingClientRect();
+    const sparkle = { id: Date.now(), x: event.clientX - layer.left, y: event.clientY - layer.top };
+    setSparkles((list) => [...list.slice(-3), sparkle]);
+    window.setTimeout(() => setSparkles((list) => list.filter((s) => s.id !== sparkle.id)), 700);
+  };
+
   return (
     <div className="falling-leaves" aria-hidden="true">
       {fallingLeaves.map((leaf) => (
         <span
           key={leaf.id}
+          className={collected.includes(leaf.id) ? "is-collected" : undefined}
+          onPointerDown={(event) => event.stopPropagation()} // don't trigger the hero leaf burst
+          onClick={(event) => collect(leaf.id, event)}
+          // a collected leaf comes back when its fall starts again
+          onAnimationIteration={(event) => {
+            if (event.animationName === "leaf-fall") {
+              setCollected((list) => list.filter((id) => id !== leaf.id));
+            }
+          }}
           style={
             {
-              "--leaf-x": `${leaf.x}vw`,
-              "--leaf-delay": `${leaf.delay}s`,
+              "--leaf-x": `${leaf.x}%`,
+              "--leaf-delay": `${leaf.delay - offset * 7}s`,
               "--leaf-duration": `${leaf.duration}s`,
               "--leaf-color": leaf.color,
               "--leaf-size": `${leaf.size}px`,
+              "--leaf-opacity": leaf.opacity,
+              "--leaf-rest": leaf.rest,
             } as CSSProperties
           }
         />
+      ))}
+      {sparkles.map((s) => (
+        <b key={s.id} className="leaf-sparkle" style={{ left: s.x, top: s.y }}>
+          <i />
+          <i />
+          <i />
+          <i />
+          <em>+3</em>
+        </b>
       ))}
     </div>
   );
@@ -283,6 +345,7 @@ const MELODY: Array<Array<number | null>> = [
 ];
 
 function MusicToggle() {
+  const { musicOn } = useGame();
   const [enabled, setEnabled] = useState(false);
   const [volume, setVolume] = useState(0.14);
   const volumeRef = useRef(volume);
@@ -366,7 +429,10 @@ function MusicToggle() {
         type="button"
         aria-pressed={enabled}
         aria-label={`Music ${enabled ? "on" : "off"}`}
-        onClick={() => setEnabled((current) => !current)}
+        onClick={() => {
+          if (!enabled) musicOn(); // "Night Owl" achievement
+          setEnabled(!enabled);
+        }}
       >
         <span className="pixel-speaker" aria-hidden="true">
           <i />
@@ -414,17 +480,20 @@ function formatTime(iso: string) {
 const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 const STORAGE_KEY = "chat-conversation";
 const CHAT_ERROR = "The guild could not answer. Please try again in a moment.";
-const SUGGESTIONS = [
-  "What does your group do?",
-  "Who is good at Python?",
-  "Tell me about each member",
-  "Which awards have you won?",
-];
+// shown when the backend cannot be reached at all (not running, or still waking up)
+const CHAT_OFFLINE =
+  "Can't reach the guild's server right now. It may be starting up - please try again in a minute.";
+// "Quest" buttons: one click sends a suggested question
+const QUESTS = ["Who is Punnawit?", "What awards did the group win?", "What is the tech stack?"];
 
 function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { chatSent } = useGame();
   const closeButton = useRef<HTMLButtonElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // typewriter: the AI reply being "typed" and how many characters are shown so far
+  const [typingMsg, setTypingMsg] = useState<ChatMessage | null>(null);
+  const [shown, setShown] = useState(0);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -456,9 +525,21 @@ function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // reveal the reply 2 characters every 20ms, then stop
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, busy]);
+    if (!typingMsg) return;
+    if (shown >= typingMsg.content.length) {
+      setTypingMsg(null);
+      return;
+    }
+    const timer = window.setTimeout(() => setShown((n) => n + 2), 20);
+    return () => window.clearTimeout(timer);
+  }, [typingMsg, shown]);
+
+  // keep the newest text in view (instant while typing so it doesn't jump)
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: typingMsg ? "auto" : "smooth", block: "end" });
+  }, [messages, busy, shown, typingMsg]);
 
   const send = async (text: string) => {
     const message = text.trim();
@@ -479,8 +560,9 @@ function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        // the server sends a friendly { error } text, e.g. "Too many requests" on 429
-        setError(data.error || CHAT_ERROR);
+        // the server sends a friendly { error } text, e.g. "Too many requests" on 429.
+        // No text + 502/503/504 means a proxy could not reach the backend.
+        setError(data.error || (res.status >= 502 ? CHAT_OFFLINE : CHAT_ERROR));
         return;
       }
       if (data.conversationId && data.conversationId !== conversationId) {
@@ -491,13 +573,21 @@ function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
           // storage can be unavailable in privacy modes
         }
       }
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", content: data.reply, created_at: new Date().toISOString() },
-      ]);
+      const reply: ChatMessage = {
+        role: "assistant",
+        content: data.reply,
+        created_at: new Date().toISOString(),
+      };
+      setMessages((current) => [...current, reply]);
+      // typewriter effect, unless the visitor prefers reduced motion
+      if (!prefersReducedMotion()) {
+        setShown(0);
+        setTypingMsg(reply);
+      }
+      chatSent(message); // +10 XP and chat achievements
     } catch {
       // network problem (server down, offline)
-      setError(CHAT_ERROR);
+      setError(CHAT_OFFLINE);
     } finally {
       setBusy(false);
     }
@@ -511,6 +601,7 @@ function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
     }
     setConversationId(null);
     setMessages([]);
+    setTypingMsg(null);
     setError("");
   };
 
@@ -545,17 +636,35 @@ function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
           {messages.length === 0 && (
             <p className="chat-hint">Ask about our team, our skills or our projects.</p>
           )}
-          {messages.map((m, i) => (
-            <div key={i} className={`chat-msg ${m.role}`}>
-              <span className="sr-only">{m.role === "user" ? "You: " : "Guild AI: "}</span>
-              {m.content}
-              <time className="chat-time" dateTime={m.created_at}>
-                {formatTime(m.created_at)}
-              </time>
-            </div>
-          ))}
+          {messages.map((m, i) => {
+            const typing = m === typingMsg;
+            return (
+              <div
+                key={i}
+                className={`chat-msg ${m.role}${typing ? " is-typing" : ""}`}
+                // click a reply that is still typing to show all of it at once
+                onClick={typing ? () => setTypingMsg(null) : undefined}
+                title={typing ? "Click to skip" : undefined}
+              >
+                <span className="sr-only">{m.role === "user" ? "You: " : "Guild AI: "}</span>
+                {typing ? (
+                  <>
+                    {/* screen readers get the whole reply; the eye sees it being typed */}
+                    <span aria-hidden="true">{m.content.slice(0, shown)}</span>
+                    <span className="sr-only">{m.content}</span>
+                  </>
+                ) : (
+                  m.content
+                )}
+                <time className="chat-time" dateTime={m.created_at}>
+                  {formatTime(m.created_at)}
+                </time>
+              </div>
+            );
+          })}
           {busy && (
             <div className="chat-msg assistant chat-typing" aria-label="The guild is typing">
+              <span className="chat-typing-label">typing</span>
               <i />
               <i />
               <i />
@@ -570,15 +679,14 @@ function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
           </p>
         )}
 
-        {messages.length === 0 && (
-          <div className="chat-options">
-            {SUGGESTIONS.map((s) => (
-              <button type="button" key={s} onClick={() => send(s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="chat-quests" aria-label="Quest questions">
+          <span className="label">Quests</span>
+          {QUESTS.map((q) => (
+            <button type="button" key={q} onClick={() => send(q)} disabled={busy}>
+              {q}
+            </button>
+          ))}
+        </div>
 
         <form
           className="chat-form"
@@ -612,8 +720,25 @@ function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   );
 }
 
+// The game state (XP, achievements) wraps the whole site so every part can use it.
 export default function App() {
+  return (
+    <GameProvider>
+      <Site />
+    </GameProvider>
+  );
+}
+
+function Site() {
+  const { inspectMember } = useGame();
   const [chatOpen, setChatOpen] = useState(false);
+  const [badgesOpen, setBadgesOpen] = useState(false);
+  // "Select a character": the member card the visitor clicked last
+  const [selected, setSelected] = useState<string | null>(null);
+  // stable close functions: the dialogs move focus when these change,
+  // and this component re-renders on every XP change
+  const closeChat = useCallback(() => setChatOpen(false), []);
+  const closeBadges = useCallback(() => setBadgesOpen(false), []);
   const [bursts, setBursts] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
   useEffect(() => {
@@ -661,7 +786,6 @@ export default function App() {
 
   return (
     <>
-      <FallingLeaves />
       <a className="skip-link" href="#main">
         Skip to content
       </a>
@@ -686,6 +810,7 @@ export default function App() {
           Chat with our AI
           <PixelArrow />
         </button>
+        <XpHud onOpenAchievements={() => setBadgesOpen(true)} />
       </header>
 
       <main id="main">
@@ -695,6 +820,7 @@ export default function App() {
           aria-labelledby="hero-title"
           onPointerDown={dropLeaves}
         >
+          <FallingLeaves offset={0} />
           <PixelForest variant="hero" />
           <Fireflies className="hero-fireflies" />
           <div className="leaf-bursts" aria-hidden="true">
@@ -736,7 +862,7 @@ export default function App() {
                 <span className="type-line type-line-title-two">Autumn Byte Guild.</span>
               </h1>
               <p className="hero-concept type-line type-line-two">
-                Three minds building thoughtful AI, one quest at a time.
+                Two minds building thoughtful AI, one quest at a time.
               </p>
               <p className="type-line type-line-three">
                 Ask us anything, or scroll to meet the team.
@@ -754,6 +880,7 @@ export default function App() {
         </section>
 
         <section className="about-section" id="about" aria-labelledby="about-title">
+          <FallingLeaves offset={1} />
           <PixelForest />
           <Fireflies className="section-fireflies" />
           <div className="section-shell">
@@ -765,7 +892,7 @@ export default function App() {
                 One shared quest.
               </h2>
               <p>
-                We are a three-person AI Engineering team exploring how intelligent systems can feel
+                We are a two-person AI Engineering team exploring how intelligent systems can feel
                 practical, human and genuinely useful. We combine engineering, interface design and
                 storytelling to take ideas from first sketch to working demo.
               </p>
@@ -808,6 +935,7 @@ export default function App() {
         </section>
 
         <section className="members-section" id="members" aria-labelledby="members-title">
+          <FallingLeaves offset={2} />
           <PixelForest />
           <Fireflies className="section-fireflies" />
           <div className="section-shell">
@@ -817,18 +945,31 @@ export default function App() {
                 <h2 id="members-title">Meet the team</h2>
               </div>
               <p>
-                Three paths, one build. Select a character to inspect their skills and completed
+                Two paths, one build. Select a character to inspect their skills and completed
                 quests.
               </p>
             </div>
 
             <div className="member-grid">
               {members.map((member) => (
-                <article className={`member-card ${member.accent}`} key={member.number}>
+                // Clicking anywhere on a card selects that character (+5 XP the first time).
+                // Keyboard users use the "Select" button, whose click bubbles up to here.
+                <article
+                  className={`member-card ${member.accent}${selected === member.name ? " is-selected" : ""}`}
+                  key={member.number}
+                  onClick={() => {
+                    setSelected(member.name);
+                    inspectMember(member.name);
+                  }}
+                >
                   <div className="member-top">
                     <div className="avatar" aria-hidden="true">
                       {member.photo ? (
-                        <AvatarPhoto src={member.photo} initials={member.initials} />
+                        <AvatarPhoto
+                          src={member.photo}
+                          initials={member.initials}
+                          focus={member.photoFocus}
+                        />
                       ) : (
                         <strong>{member.initials}</strong>
                       )}
@@ -837,6 +978,13 @@ export default function App() {
                       {/* sparks come after the photo so they are drawn on top of it */}
                     </div>
                     <span className="member-number">Player {member.number}</span>
+                    <button
+                      type="button"
+                      className="member-select"
+                      aria-pressed={selected === member.name}
+                    >
+                      {selected === member.name ? "Selected" : "Select"}
+                    </button>
                   </div>
                   <div className="member-body">
                     <h3>
@@ -846,13 +994,22 @@ export default function App() {
                     <p className="member-role">{member.role}</p>
                     <p className="member-description">{member.description}</p>
                     <div className="member-divider" />
-                    <p className="label">Skill set</p>
-                    <div className="tag-row">
-                      {member.skills.length === 0 && <span>To be added</span>}
-                      {member.skills.map((skill) => (
-                        <span key={skill}>{skill}</span>
-                      ))}
-                    </div>
+                    <p className="label">Stats</p>
+                    <ul className="stat-list">
+                      {member.skills.map((skill, index) => {
+                        const level = skillLevel(index);
+                        return (
+                          <li key={skill}>
+                            <span className="stat-name">{skill}</span>
+                            <span className="stat-bar" aria-hidden="true">
+                              <i style={{ width: `${level * 20}%` }} />
+                            </span>
+                            <span className="stat-level">Lv.{level}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <p className="stat-note">Stats are just for fun, not a real rating.</p>
                     <p className="label quests-label">Completed quests</p>
                     <div className="quest-list">
                       {member.projects.length === 0 && (
@@ -880,6 +1037,7 @@ export default function App() {
           id="contact"
           aria-labelledby="contact-title"
         >
+          <FallingLeaves offset={3} />
           <PixelForest variant="contact" />
           <Fireflies className="contact-fireflies" />
           <div className="scene-label" aria-hidden="true">
@@ -915,7 +1073,10 @@ export default function App() {
       </main>
 
       <MusicToggle />
-      <ChatDialog open={chatOpen} onClose={() => setChatOpen(false)} />
+      <ChatDialog open={chatOpen} onClose={closeChat} />
+      <AchievementsModal open={badgesOpen} onClose={closeBadges} />
+      <Toasts />
+      <SecretBurst />
     </>
   );
 }

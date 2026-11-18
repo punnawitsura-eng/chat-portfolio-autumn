@@ -682,9 +682,12 @@
   box-shadow: 5px 5px 0 #8e9ab8;
 }
 
+/* Two member cards, each at most 380px wide, centered in the section
+   (no empty third column). Phones switch to one column further below. */
 .member-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 380px));
+  justify-content: center;
   gap: 28px;
   align-items: start;
 }
@@ -762,9 +765,10 @@
   height: 100%;
   display: block;
   object-fit: cover;
-  object-position: 20% 50%;
+  /* --photo-x / --photo-y can be set per member (face position); defaults fit Pitchayuth */
+  object-position: var(--photo-x, 20%) 50%;
   transform: scale(1.8);
-  transform-origin: 50% 27%;
+  transform-origin: 50% var(--photo-y, 27%);
   image-rendering: auto; /* keep the photo smooth, not pixelated */
 }
 /* keep the inner accent border and the sparks on top of the photo */
@@ -1067,41 +1071,69 @@ footer > a {
   transform-origin: left bottom;
 }
 
+/* ===== Falling leaves: a quiet background effect =====
+   Every section has its own leaves layer at z-index 1: above the section
+   background, but behind the trees (4), fireflies (7), text and cards (20),
+   the top bar and the chat/music buttons. Leaves never take clicks. */
 .falling-leaves {
-  position: fixed;
-  z-index: 10;
+  position: absolute;
+  z-index: 1;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
 }
 
+/* Each span is an invisible full-height column that slides down.
+   The leaf itself is the ::before drawn just below the column, so it falls
+   from above the top edge to below the bottom edge of the section. */
 .falling-leaves > span {
   position: absolute;
-  top: -24px;
-  left: 0;
+  top: 0;
+  left: var(--leaf-x);
   width: var(--leaf-size);
-  height: var(--leaf-size);
-  background: var(--leaf-color);
-  box-shadow: calc(var(--leaf-size) * 0.5) calc(var(--leaf-size) * 0.5) 0 #2a2d4a;
+  height: 100%;
+  opacity: var(--leaf-opacity);
+  pointer-events: none;
   animation: leaf-fall var(--leaf-duration) linear var(--leaf-delay) infinite;
   will-change: transform;
 }
 
+.falling-leaves > span::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: var(--leaf-size);
+  height: var(--leaf-size);
+  background: var(--leaf-color);
+  animation: leaf-sway 9s ease-in-out var(--leaf-delay) infinite;
+}
+
 @keyframes leaf-fall {
+  from {
+    transform: translateY(calc(-100% - 24px));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* gentle side-to-side drift while turning */
+@keyframes leaf-sway {
   0% {
-    transform: translate3d(var(--leaf-x), -30px, 0) rotate(0deg);
+    transform: translateX(0) rotate(0deg);
   }
   25% {
-    transform: translate3d(calc(var(--leaf-x) + 28px), 25vh, 0) rotate(90deg);
+    transform: translateX(16px) rotate(90deg);
   }
   50% {
-    transform: translate3d(calc(var(--leaf-x) - 18px), 52vh, 0) rotate(180deg);
+    transform: translateX(-10px) rotate(180deg);
   }
   75% {
-    transform: translate3d(calc(var(--leaf-x) + 20px), 78vh, 0) rotate(270deg);
+    transform: translateX(12px) rotate(270deg);
   }
   100% {
-    transform: translate3d(calc(var(--leaf-x) - 8px), 106vh, 0) rotate(360deg);
+    transform: translateX(0) rotate(360deg);
   }
 }
 
@@ -1569,7 +1601,7 @@ footer > a {
     height: 76%;
   }
 
-  .falling-leaves > span:nth-child(n + 13) {
+  .falling-leaves > span:nth-child(n + 7) {
     display: none;
   }
 
@@ -1697,7 +1729,7 @@ footer > a {
     clip-path: none;
   }
 
-  .falling-leaves,
+  /* falling leaves are not hidden: they rest still (see GAME LAYER below) */
   .leaf-bursts,
   .pixel-squirrel {
     display: none;
@@ -1796,18 +1828,14 @@ footer > a {
   50% { transform: translateY(-3px); }
 }
 
-/* real pixel maple leaves instead of square dots */
-.falling-leaves > span {
-  width: 22px;
-  height: 22px;
-  box-shadow: none;
+/* real pixel maple leaves instead of square dots (size comes from --leaf-size) */
+.falling-leaves > span::before,
+.secret-burst i {
   background: var(--leaf-color);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11' shape-rendering='crispEdges'%3E%3Cpath d='M5 0h1v1h-1zM4 1h3v1h-3zM1 2h1v1h-1zM4 2h3v1h-3zM9 2h1v1h-1zM1 3h2v1h-2zM4 3h3v1h-3zM8 3h2v1h-2zM1 4h9v1h-9zM2 5h7v1h-7zM1 6h9v1h-9zM0 7h11v1h-11zM3 8h5v1h-5zM5 9h1v1h-1zM5 10h1v1h-1z'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11' shape-rendering='crispEdges'%3E%3Cpath d='M5 0h1v1h-1zM4 1h3v1h-3zM1 2h1v1h-1zM4 2h3v1h-3zM9 2h1v1h-1zM1 3h2v1h-2zM4 3h3v1h-3zM8 3h2v1h-2zM1 4h9v1h-9zM2 5h7v1h-7zM1 6h9v1h-9zM0 7h11v1h-11zM3 8h5v1h-5zM5 9h1v1h-1zM5 10h1v1h-1z'/%3E%3C/svg%3E") center / contain no-repeat;
   filter: drop-shadow(2px 2px 0 rgba(23, 26, 48, 0.55));
 }
-.falling-leaves > span:nth-child(3n) { width: 33px; height: 33px; }
-.falling-leaves > span:nth-child(11n) { width: 44px; height: 44px; }
 .leaf-burst i {
   width: 22px;
   height: 22px;
@@ -2311,4 +2339,411 @@ a, button, input[type="range"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='h
 }
 @media (prefers-reduced-motion: reduce) {
   .chat-typing i { animation: none; opacity: 1; }
+}
+/* ================================================================
+   GAME LAYER: XP bar, toasts, achievements window, collectible
+   leaves, RPG member cards, chat quests and the Konami leaf burst.
+   All pixel art here is plain CSS (no images or sounds).
+   ================================================================ */
+
+/* ---- XP bar: second row of the top bar ---- */
+.topbar {
+  row-gap: 8px;
+}
+.xp-hud {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-family: "Silkscreen", monospace;
+  font-size: 10px;
+}
+.xp-level {
+  white-space: nowrap;
+}
+.xp-level b {
+  color: #ffc447;
+  font-weight: 400;
+}
+.xp-bar {
+  flex: 1 1 auto;
+  max-width: 360px;
+  min-width: 60px;
+  height: 12px;
+  background: #171a30;
+  border: 2px solid #fff0b8;
+}
+.xp-bar i {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #ff8a1f 0 6px, #ffc447 6px 8px);
+  transition: width 300ms steps(6, end);
+}
+.xp-count {
+  color: #c9d1e3;
+  white-space: nowrap;
+}
+.xp-badges {
+  margin-left: auto;
+  padding: 4px 8px;
+  color: #2a2d4a;
+  background: #ffc447;
+  border: 2px solid #fff0b8;
+  box-shadow: 2px 2px 0 #b5381a;
+  font-family: "Silkscreen", monospace;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.xp-badges:hover {
+  background: #fff0b8;
+}
+
+/* ---- toasts: level-up and achievement pop-ups ---- */
+.game-toasts {
+  position: fixed;
+  z-index: 120; /* above the chat window, so unlocks show while chatting */
+  top: 140px;
+  left: 50%;
+  width: min(320px, calc(100% - 32px));
+  display: grid;
+  gap: 8px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.game-toast {
+  display: grid;
+  gap: 4px;
+  padding: 10px 14px;
+  color: #2a2d4a;
+  background: #fff0b8;
+  border: 3px solid #2a2d4a;
+  box-shadow: 4px 4px 0 #b5381a;
+  font-family: "Silkscreen", monospace;
+  animation: toast-pop 320ms steps(4, end) both;
+}
+.game-toast.level {
+  background: #ffc447;
+}
+.game-toast strong {
+  font-size: 10px;
+}
+.game-toast span {
+  font-size: 13px;
+}
+/* ends fully visible, so with reduced motion the toast simply appears */
+@keyframes toast-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- achievements window ---- */
+.badge-window {
+  width: min(520px, 100%);
+  max-height: calc(100svh - 48px);
+  overflow-y: auto;
+  padding: clamp(20px, 4vw, 34px);
+}
+.badge-window h2 {
+  font-family: "Silkscreen", monospace;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.04em;
+}
+.badge-summary {
+  margin: 12px 0 18px;
+  font-size: 14px;
+}
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: #fff9df;
+  border: 3px solid #2a2d4a;
+}
+.badge.locked {
+  color: #5b4a7a;
+  background: #ece2c4;
+  border-style: dashed;
+}
+.badge-icon {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: #ffc447;
+  background: #2a2d4a;
+  box-shadow: 3px 3px 0 #b5381a;
+  font-family: "Silkscreen", monospace;
+  font-size: 20px;
+}
+.badge.locked .badge-icon {
+  color: #8e9ab8;
+  box-shadow: none;
+}
+.badge strong {
+  display: block;
+  font-family: "Silkscreen", monospace;
+  font-size: 11px;
+}
+.badge small {
+  font-size: 12px;
+}
+
+/* ---- collectible leaves: only the leaf itself takes the click ---- */
+.falling-leaves > span::before {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.falling-leaves > span.is-collected {
+  visibility: hidden;
+}
+.leaf-sparkle {
+  position: absolute;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.leaf-sparkle i {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 6px;
+  height: 6px;
+  background: #ffc447;
+  animation: sparkle-out 600ms steps(4, end) forwards;
+}
+.leaf-sparkle i:nth-child(1) { --dx: -14px; --dy: -14px; }
+.leaf-sparkle i:nth-child(2) { --dx: 14px; --dy: -14px; }
+.leaf-sparkle i:nth-child(3) { --dx: -14px; --dy: 14px; }
+.leaf-sparkle i:nth-child(4) { --dx: 14px; --dy: 14px; }
+.leaf-sparkle em {
+  position: absolute;
+  top: -20px;
+  left: 6px;
+  color: #fff0b8;
+  font-family: "Silkscreen", monospace;
+  font-size: 11px;
+  font-style: normal;
+  text-shadow: 1px 1px 0 #2a2d4a;
+  animation: float-up 700ms steps(5, end) forwards;
+}
+@keyframes sparkle-out {
+  from {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy));
+  }
+}
+@keyframes float-up {
+  to {
+    opacity: 0;
+    translate: 0 -14px;
+  }
+}
+
+/* ---- member cards as RPG character cards ---- */
+.member-card {
+  cursor: pointer;
+  transition:
+    translate 120ms steps(2, end),
+    rotate 120ms steps(2, end),
+    box-shadow 120ms steps(2, end);
+}
+.member-card:hover {
+  translate: 0 -6px;
+  rotate: -0.8deg;
+}
+.member-card:nth-child(2):hover {
+  rotate: 0.8deg;
+}
+.member-card.is-selected {
+  box-shadow:
+    10px 10px 0 var(--accent),
+    0 0 0 4px #ffc447;
+}
+.member-card.is-selected:hover {
+  box-shadow:
+    10px 14px 0 var(--accent),
+    0 0 0 4px #ffc447;
+}
+.member-select {
+  position: absolute;
+  z-index: 4;
+  top: 14px;
+  right: 14px;
+  padding: 5px 8px;
+  color: #2a2d4a;
+  background: #fff0b8;
+  border: 2px solid #2a2d4a;
+  box-shadow: 2px 2px 0 #2a2d4a;
+  font-family: "Silkscreen", monospace;
+  font-size: 9px;
+}
+.member-card.is-selected .member-select {
+  background: #ffc447;
+}
+.stat-list {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.stat-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 40px;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.stat-name {
+  overflow-wrap: anywhere;
+}
+.stat-bar {
+  height: 12px;
+  background: #ece2c4;
+  border: 2px solid #2a2d4a;
+}
+.stat-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.stat-level {
+  font-family: "Silkscreen", monospace;
+  font-size: 10px;
+  text-align: right;
+}
+.stat-note {
+  margin: 8px 0 0;
+  color: #5b4a7a;
+  font-size: 11px;
+}
+
+/* ---- chat: quest buttons, typing label, typewriter ---- */
+.chat-quests {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+.chat-quests button {
+  padding: 7px 10px;
+  color: #2a2d4a;
+  background: #fff9df;
+  border: 3px solid #2a2d4a;
+  box-shadow: 2px 2px 0 #b5381a;
+  font-family: "Silkscreen", monospace;
+  font-size: 9px;
+  text-align: left;
+}
+.chat-quests button:hover:not(:disabled) {
+  background: #ffc447;
+}
+.chat-quests button:disabled {
+  opacity: 0.5;
+}
+.chat-typing {
+  align-items: center;
+}
+.chat-typing-label {
+  margin-right: 2px;
+  font-family: "Silkscreen", monospace;
+  font-size: 10px;
+}
+.chat-msg.is-typing {
+  cursor: pointer;
+}
+
+/* ---- Konami code: autumn-leaf burst from the centre of the screen ---- */
+.secret-burst {
+  position: fixed;
+  z-index: 130;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.secret-burst i {
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  width: 18px;
+  height: 18px;
+  animation: secret-fly 1.6s steps(12, end) forwards;
+}
+@keyframes secret-fly {
+  from {
+    opacity: 1;
+    transform: rotate(var(--burst-angle)) translateX(0) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--burst-angle)) translateX(var(--burst-distance)) rotate(540deg);
+  }
+}
+
+/* ---- phones (390px wide) ---- */
+@media (max-width: 760px) {
+  .xp-hud {
+    gap: 6px;
+    font-size: 8px;
+  }
+  .xp-count {
+    display: none;
+  }
+  .xp-badges {
+    padding: 3px 6px;
+    font-size: 8px;
+  }
+  .game-toasts {
+    top: 112px;
+  }
+  .stat-list li {
+    grid-template-columns: minmax(0, 1fr) 72px 36px;
+  }
+}
+
+/* ---- reduced motion: features stay, movement goes ---- */
+@media (prefers-reduced-motion: reduce) {
+  /* leaves rest at different heights instead of falling (still collectable) */
+  .falling-leaves > span {
+    animation: none !important;
+    transform: translateY(calc(var(--leaf-rest) * -1%));
+  }
+  .falling-leaves > span::before {
+    animation: none !important;
+  }
+  .member-card:hover,
+  .member-card:nth-child(2):hover {
+    translate: none;
+    rotate: none;
+  }
+  .secret-burst {
+    display: none;
+  }
 }
