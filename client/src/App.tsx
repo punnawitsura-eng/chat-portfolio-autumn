@@ -1058,9 +1058,13 @@ function Site() {
                   <span>Email</span>
                   autumnbyteguild@gmail.com
                 </a>
-                <a href="https://github.com/" target="_blank" rel="noreferrer">
+                <a
+                  href="https://github.com/punnawitsura-eng/chat-portfolio-autumn"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <span>GitHub</span>
-                  github.com/autumn-byte-guild
+                  github.com/punnawitsura-eng/chat-portfolio-autumn
                 </a>
               </div>
               <button className="pixel-button" type="button" onClick={() => setChatOpen(true)}>
