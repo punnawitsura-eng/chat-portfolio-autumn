@@ -35,7 +35,12 @@ const members: Member[] = [
     projects: [
       {
         title: "BU ParkView",
-        description: "AI smart parking • Popular Vote Award, BDI Hackathon 2026",
+        description: "AI smart parking",
+      },
+      {
+        title: "DNA Scholarship project",
+        description:
+          "Building an AI parking-occupancy detection system (YOLO vehicle detection) for the parking lot behind Building B4 at Bangkok University. Punnawit owns the AI/detection part.",
       },
       {
         title: "HIWWHEE — ตลอดกาลไม่มีจริง [Official MV]",
@@ -484,7 +489,11 @@ const CHAT_ERROR = "The guild could not answer. Please try again in a moment.";
 const CHAT_OFFLINE =
   "Can't reach the guild's server right now. It may be starting up - please try again in a minute.";
 // "Quest" buttons: one click sends a suggested question
-const QUESTS = ["Who is Punnawit?", "What awards did the group win?", "What is the tech stack?"];
+const QUESTS = [
+  "Who is Punnawit?",
+  "What achievements does Punnawit have?",
+  "What is the tech stack?",
+];
 
 function ChatDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { chatSent } = useGame();

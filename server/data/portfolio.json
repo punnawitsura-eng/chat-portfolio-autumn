@@ -37,7 +37,11 @@
       "projects": [
         {
           "title": "BU ParkView",
-          "description": "AI smart parking system; won the Popular Vote Award at BDI Hackathon 2026."
+          "description": "AI smart parking system."
+        },
+        {
+          "title": "DNA Scholarship project",
+          "description": "Building an AI parking-occupancy detection system (YOLO vehicle detection) for the parking lot behind Building B4 at Bangkok University. Punnawit owns the AI/detection part."
         },
         {
           "title": "HIWWHEE - ตลอดกาลไม่มีจริง [Official MV]",

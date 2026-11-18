@@ -52,7 +52,7 @@ If `client/` still has Figma-only plugins in `vite.config.ts` (figmaSiteConfigur
 ## Data rules
 - The portfolio text lives in `server/data/portfolio.json` and must match the member list hardcoded in `client/src/App.tsx`. After editing it run `npm run seed` in `server/`.
 - Placeholders ("Teammate A", "Name to be added", made-up email `autumnbyteguild@gmail.com`) are NOT real. Never invent facts about people. If real data is missing, keep the placeholder and list it for me at the end.
-- Member 1 (me): Punnawit (Beam) Surarak, role: backend, AI integration, database, CI/CD. Projects: BU ParkView (AI smart parking, Popular Vote Award at BDI Hackathon 2026) and the HIWWHEE "ตลอดกาลไม่มีจริง" official MV (cast).
+- Member 1 (me): Punnawit (Beam) Surarak, role: backend, AI integration, database, CI/CD. Projects: BU ParkView (AI smart parking), the DNA Scholarship project (AI parking-occupancy detection system with YOLO vehicle detection for the parking lot behind Building B4 at Bangkok University; Punnawit owns the AI/detection part) and the HIWWHEE "ตลอดกาลไม่มีจริง" official MV (cast).
 
 ## Work plan (do in order, one step per turn)
 1. Read the repo and `reference/week-10`, then summarize what exists and what is missing. Change nothing yet.
