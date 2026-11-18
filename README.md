@@ -256,7 +256,7 @@ Do the steps in this order. Both services can use the free plans.
    cd server
    npm run seed
    ```
-   You should see `Seeded group "Autumn Byte Guild" with 3 members.`
+   You should see `Seeded group "Autumn Byte Guild" with 2 members.`
 
 ### 2. Backend (Render Web Service)
 
@@ -322,7 +322,8 @@ Do the steps in this order. Both services can use the free plans.
 
 | Problem | Fix |
 |---|---|
-| Chat says "The guild could not answer" | Check that the backend is running and that `/api/health` works. On Render, it may be waking up: wait a minute |
+| Chat says "Can't reach the guild's server right now" | The backend is not running or not reachable. Locally: start it with `npm run dev` in `server/` (the Vite terminal shows `proxy error … ECONNREFUSED`). On Render: it may be waking up, so wait a minute and check `<backend URL>/api/health` |
+| Chat says "The guild could not answer" | The backend answered with an unexpected error. Look at the backend logs (terminal, or Render → Logs) |
 | Browser console shows a CORS error | Set `CLIENT_ORIGIN` on the backend to the exact site URL, e.g. `https://xxx.onrender.com` |
 | The site still calls the old backend URL | `VITE_API_URL` is built into the site. In Render, open the static site and choose **Manual Deploy → Clear build cache & deploy** |
 | "Too many requests, try again soon." | The Gemini free quota is used up. Wait a bit, or use another key |
@@ -334,7 +335,6 @@ Do the steps in this order. Both services can use the free plans.
 | Member | Role |
 |---|---|
 | Punnawit (Beam) Surarak | Backend, AI integration, database, CI/CD |
-| _Name to be added_ | Portfolio page (frontend) |
 | Pitchayuth Pitchayakasorn | Chat UI and content |
 
 University final project: Chat AI with Group Portfolio.
