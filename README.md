@@ -21,10 +21,11 @@ The AI only answers from our own portfolio data, which is stored in PostgreSQL. 
 8. [Database](#database)
 9. [Tests](#tests)
 10. [CI/CD](#cicd)
-11. [Deploy on Render + Neon](#deploy-on-render--neon)
-12. [Updating the portfolio data](#updating-the-portfolio-data)
-13. [Troubleshooting](#troubleshooting)
-14. [Team](#team)
+11. [Deployment](#deployment) (quick reference)
+12. [Deploy on Render + Neon](#deploy-on-render--neon) (step by step)
+13. [Updating the portfolio data](#updating-the-portfolio-data)
+14. [Troubleshooting](#troubleshooting)
+15. [Team](#team)
 
 ---
 
@@ -241,6 +242,35 @@ The pipeline lives in [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml)
 2. `POST` to the Render deploy hook of the frontend (secret `RENDER_FRONTEND_HOOK`)
 
 A deploy hook is a secret URL from Render; calling it makes Render pull the latest code and redeploy. Code that fails its tests is therefore never deployed. If a hook secret isn't set yet, that step prints "skipping" instead of failing.
+
+## Deployment
+
+**Live site:** _add the Render static site URL here_ · **API:** _add the Render web service URL here_
+
+Quick reference for Render (full click-by-click steps are in the next section).
+
+| | Backend (Render **Web Service**) | Frontend (Render **Static Site**) |
+|---|---|---|
+| Root Directory | `server` | `client` |
+| Build Command | `npm install` | `npm install && npm run build` |
+| Start Command | `npm start` (runs `node src/index.js`) | – |
+| Publish Directory | – | `dist` |
+| Node version | env `NODE_VERSION=22` (`package.json` needs `>=20`) | env `NODE_VERSION=22` (Vite 8 needs 20.19+ or 22.12+) |
+| Health Check Path | `/api/health` | – |
+| Auto-Deploy | Off (GitHub Actions deploys after CI passes) | Off |
+
+**Environment variables (names only; values go in the Render dashboard, never in git):**
+
+- Backend: `CLIENT_ORIGIN`, `DATABASE_URL`, `DB_SSL`, `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`. Render sets `PORT` itself. The same names are in [server/.env.example](server/.env.example).
+- Frontend: `VITE_API_URL` = the backend URL. See [client/.env.example](client/.env.example).
+
+**Things to get right:**
+
+1. `CLIENT_ORIGIN` must be the static site URL. It is the **only** origin the API accepts from a browser, and a trailing `/` is removed automatically. If it is missing, the API accepts every origin, so always set it in production.
+2. `VITE_API_URL` is built into the site. After changing it, redeploy the static site (**Manual Deploy → Clear build cache & deploy**). A trailing `/` is removed automatically.
+3. `DATABASE_URL` from Neon should end with `sslmode=verify-full`, together with `DB_SSL=true`.
+4. Seed the production database once from your computer: `cd server && npm run seed`, with `DATABASE_URL` pointing at Neon.
+5. Add the deploy hooks as GitHub repository secrets `RENDER_BACKEND_HOOK` and `RENDER_FRONTEND_HOOK`, so every green push to `main` deploys.
 
 ## Deploy on Render + Neon
 
