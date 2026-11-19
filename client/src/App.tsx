@@ -1021,9 +1021,6 @@ function Site() {
                     <p className="stat-note">Stats are just for fun, not a real rating.</p>
                     <p className="label quests-label">Completed quests</p>
                     <div className="quest-list">
-                      {member.projects.length === 0 && (
-                        <p className="member-description">To be added.</p>
-                      )}
                       {member.projects.map((project) => (
                         <div className="quest" key={project.title}>
                           <span aria-hidden="true">›</span>
@@ -1063,9 +1060,9 @@ function Site() {
               <h2 id="contact-title">Let’s start a new quest.</h2>
               <p>Have a project, an idea or just a good question? Our campfire is always open.</p>
               <div className="contact-links">
-                <a href="mailto:autumnbyteguild@gmail.com">
+                <a href="mailto:punnawit.sura@bumail.net">
                   <span>Email</span>
-                  autumnbyteguild@gmail.com
+                  punnawit.sura@bumail.net
                 </a>
                 <a
                   href="https://github.com/punnawitsura-eng/chat-portfolio-autumn"
