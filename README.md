@@ -1,9 +1,11 @@
 # Chat AI with Group Portfolio
 
-**Autumn Byte Guild**: a portfolio website where visitors chat with an AI that answers questions about our group and about each member.
+**Autumn Byte Guild**: a portfolio website for our two-member team, where visitors chat with an AI that answers questions about our group and about each member.
 
-- **Live site:** _add the Render static site URL here_
-- **Backend API:** _add the Render web service URL here_
+- **Live site:** https://chat-portfolio-autumn.onrender.com
+- **Backend API:** https://chat-portfolio-api.onrender.com (health check: [/api/health](https://chat-portfolio-api.onrender.com/api/health))
+
+> Hosted on Render's free tier: the backend sleeps after about 15 minutes without traffic, so the first chat answer after a break can take about 1 minute. Later answers are fast.
 
 The AI only answers from our own portfolio data, which is stored in PostgreSQL. It handles questions about the whole group ("What does your group do?") and about one member ("What projects has Beam worked on?"). It answers in Thai or English.
 
@@ -245,7 +247,7 @@ A deploy hook is a secret URL from Render; calling it makes Render pull the late
 
 ## Deployment
 
-**Live site:** _add the Render static site URL here_ · **API:** _add the Render web service URL here_
+**Live site:** https://chat-portfolio-autumn.onrender.com · **API:** https://chat-portfolio-api.onrender.com (free tier: sleeps after ~15 minutes, first request can take about 1 minute)
 
 Quick reference for Render (full click-by-click steps are in the next section).
 

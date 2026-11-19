@@ -4,7 +4,7 @@ Read this whole file first. It is the only context you get: you cannot see the c
 Work one step at a time (see "Work plan"), report after each step, and stop when you need something from me.
 
 ## Project
-University final project: **"Chat AI with group Portfolio"** (group of 3, team name "Autumn Byte Guild").
+University final project: **"Chat AI with group Portfolio"** (group of 2 members, team name "Autumn Byte Guild").
 A website where visitors chat with an AI that answers questions about the group and about each member.
 - Submission (single): GitHub repo + README.md, `.env.example` (no real keys), deployed link, presentation file.
 - **My target: submit before 16 Nov 2026** (hard deadline 20 Nov 23:59, late = -1 point/day).
