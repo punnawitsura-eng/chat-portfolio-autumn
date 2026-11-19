@@ -39,6 +39,24 @@ The AI only answers from our own portfolio data, which is stored in PostgreSQL. 
 - **Saved history:** every question and answer is stored in PostgreSQL. Reloading the page brings the conversation back.
 - **Safe AI rules:** the AI answers only from the portfolio data, says so when it doesn't know, refuses off-topic requests, and ignores attempts to change its rules.
 - **CI/CD:** GitHub Actions tests and builds on every push, then deploys to Render.
+- **Member photos:** each member card shows a photo inside a pixel frame. If the photo can't load, it shows the member's initials instead.
+
+### Game layer (just for fun)
+
+Everything below runs in the browser only ([client/src/game.tsx](client/src/game.tsx) plus a few parts of `App.tsx`). Progress is saved in the visitor's `localStorage` under the key `abg-game-v1`; nothing is sent to the server.
+
+- **XP and levels:** an XP bar under the top bar. A chat message that gets an answer gives +10 XP, selecting a member card gives +5 XP (once per member), and clicking a falling leaf gives +3 XP. Every 50 XP is a new level, titled Visitor, Explorer, Adventurer, Guild Member, then Guild Master. A level-up shows a short pop-up.
+- **Achievements:** five badges, each announced with a pop-up and listed in the **Achievements** window (locked and unlocked):
+  - First Contact: send your first chat message;
+  - Curious Mind: ask the AI about both members (by name);
+  - Leaf Collector: collect 5 falling leaves;
+  - Night Owl: turn on the music;
+  - Secret Found: enter the Konami code.
+- **Collectible leaves:** a few small, see-through leaves fall in the background of each section. Only the leaf itself is clickable, so they never block buttons or links.
+- **RPG member cards:** a **Select** button (or a click on the card), skills shown as stat bars with a "Lv." number, and a small hover lift. The stat numbers are clearly marked "just for fun, not a real rating".
+- **Chat extras:** the AI reply appears with a typewriter effect (click it to show it all at once); a pixel "typing" indicator; and three **Quest** buttons that send "Who is Punnawit?", "What achievements does Punnawit have?" and "What is the tech stack?".
+- **Easter egg:** typing ↑ ↑ ↓ ↓ ← → ← → B A (not inside the chat box) plays a short burst of autumn leaves and unlocks **Secret Found**.
+- **Reduced motion:** if the visitor's system asks for reduced motion, the typewriter, tilt and leaf burst are turned off and the leaves stay still. XP, achievements and pop-ups still work.
 
 ## Tech stack and architecture
 
@@ -84,7 +102,10 @@ server/                       Express API
   .env.example                list of server environment variables
 client/                       React website
   src/App.tsx                 portfolio page + chat window
+  src/game.tsx                game layer: XP, levels, achievements, pop-ups, Konami code
   src/index.css               pixel-art autumn styles
+  public/favicon.png          pixel-leaf site icon
+  public/members/             member photos
   vite.config.ts              dev server, /api proxy to port 4000
   .env.example                list of client environment variables
 ```
