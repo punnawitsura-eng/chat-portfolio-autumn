@@ -40,17 +40,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Hook URLs are GitHub repo secrets (Settings > Secrets and variables > Actions).
-      # If a secret is not set yet, skip that deploy instead of failing the run.
+      # Spaces / line breaks pasted with the secret are removed first, then:
+      # not set -> skip; set -> POST to it (-f makes an HTTP error fail the step).
+      # The hook URL is never printed; curl's response goes to /dev/null.
       - name: Deploy backend (Render)
         env:
           HOOK: ${{ secrets.RENDER_BACKEND_HOOK }}
         run: |
+          HOOK="$(printf '%s' "$HOOK" | tr -d '[:space:]')"
           if [ -z "$HOOK" ]; then echo "RENDER_BACKEND_HOOK not set - skipping"; exit 0; fi
-          curl -fsS -X POST "$HOOK" > /dev/null && echo "Backend deploy triggered"
+          curl -fsS -X POST "$HOOK" -o /dev/null
+          echo "Backend deploy triggered"
 
       - name: Deploy frontend (Render)
         env:
           HOOK: ${{ secrets.RENDER_FRONTEND_HOOK }}
         run: |
+          HOOK="$(printf '%s' "$HOOK" | tr -d '[:space:]')"
           if [ -z "$HOOK" ]; then echo "RENDER_FRONTEND_HOOK not set - skipping"; exit 0; fi
-          curl -fsS -X POST "$HOOK" > /dev/null && echo "Frontend deploy triggered"
+          curl -fsS -X POST "$HOOK" -o /dev/null
+          echo "Frontend deploy triggered"
